@@ -1,0 +1,14 @@
+1. Connect to mongodb
+C:\Dev\mongodb\bin> .\mongo.exe -u admin -p password
+
+2. Execute those commands
+rs.initiate();
+sleep(1000);
+cfg = rs.conf();
+cfg.members[0].host = "mongo1:27017";
+rs.reconfig(cfg);
+rs.add("mongo2:27018")
+
+3. Edit C:\Windows\System32\drivers\etc\hosts
+127.0.0.1         mongo1
+127.0.0.1         mongo2

@@ -1,0 +1,52 @@
+version: '3.3'
+
+services:
+  mongo1:
+    container_name: mongo1
+    build:
+      context: .
+      dockerfile: dockerfile.mongodb
+    restart: always
+    command: --setParameter maxSessions=100 --smallfiles --replSet rs1 --port 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongo1data:/data/db"
+      - "mongo1config:/data/configdb"
+      
+  mongo2:
+    container_name: mongo2
+    build:
+      context: .
+      dockerfile: dockerfile.mongodb
+    restart: always
+    command: --setParameter maxSessions=100 --smallfiles --replSet rs1 --port 27018
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27018:27018"
+    volumes:
+      - "mongo2data:/data/db"
+      - "mongo2config:/data/configdb"
+      
+  rabbit:
+    container_name: rabbit
+    image: rabbitmq:3.7.12-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+    volumes:
+      - "rabbitdata:/var/lib/rabbitmq"
+      
+volumes:
+  mongo1data:
+  mongo1config:
+  mongo2data:
+  mongo2config:
+  rabbitdata:
