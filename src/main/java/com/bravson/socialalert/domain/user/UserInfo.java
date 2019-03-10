@@ -3,6 +3,7 @@ package com.bravson.socialalert.domain.user;
 import java.time.Instant;
 import java.time.LocalDate;
 
+import com.bravson.socialalert.domain.user.statistic.UserStatistic;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -49,4 +50,6 @@ public class UserInfo {
 	private String imageUri;
 	
 	private String biography;
+	
+	private UserStatistic statistic;
 }

@@ -1,4 +1,4 @@
-package com.bravson.socialalert.business.file;
+package com.bravson.socialalert.business.file.entity;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.bravson.socialalert.business.file.FileMetadata;
 import com.bravson.socialalert.business.file.media.MediaMetadata;
 import com.bravson.socialalert.business.user.UserAccess;
 import com.bravson.socialalert.domain.file.FileInfo;
@@ -36,15 +37,11 @@ public class FileEntity extends VersionedEntity {
 	@NonNull
 	private MediaMetadata mediaMetadata;
 
-	public FileEntity(@NonNull FileMetadata fileMetadata, @NonNull MediaMetadata mediaMetadata, @NonNull UserAccess userAccess) {
-		if (fileMetadata.getSizeVariant() != MediaSizeVariant.MEDIA) {
-			throw new IllegalArgumentException("Size variant must be " + MediaSizeVariant.MEDIA.getVariantName());
-		}
+	public FileEntity(@NonNull String fileUri, @NonNull MediaMetadata mediaMetadata, @NonNull UserAccess userAccess) {
 		this.versionInfo = VersionInfo.of(userAccess.getUserId(), userAccess.getIpAddress());
-		this.id = fileMetadata.buildFileUri();
+		this.id = fileUri;
 		this.mediaMetadata = mediaMetadata;
 		this.state = FileState.UPLOADED;
-		addVariant(fileMetadata);
 	}
 	
 	public FileEntity(@NonNull String id) {
@@ -62,11 +59,12 @@ public class FileEntity extends VersionedEntity {
 		return findFileMetadata(sizeVariant).map(FileMetadata::getFileFormat);
 	}
 
-	public void addVariant(@NonNull FileMetadata metadata) {
+	void addVariant(@NonNull FileMetadata metadata) {
 		if (fileVariants == null) {
 			fileVariants = new ArrayList<>();
 		}
 		fileVariants.add(metadata);
+		versionInfo.touch(versionInfo.getUserId(), versionInfo.getIpAddress());
 	}
 
 	public FileMetadata getFileMetadata() {
@@ -108,7 +106,7 @@ public class FileEntity extends VersionedEntity {
 		return info;
 	}
 
-	public boolean markClaimed(UserAccess userAccess) {
+	boolean markClaimed(UserAccess userAccess) {
 		if (state != FileState.UPLOADED) {
 			return false;
 		} else if (!getUserId().equals(userAccess.getUserId())) {
@@ -118,7 +116,7 @@ public class FileEntity extends VersionedEntity {
 		return true;
 	}
 	
-	public boolean markDelete(UserAccess userAccess) {
+	boolean markDeleted(UserAccess userAccess) {
 		if (state != FileState.UPLOADED) {
 			return false;
 		} else if (!getUserId().equals(userAccess.getUserId())) {
@@ -128,7 +126,7 @@ public class FileEntity extends VersionedEntity {
 		return true;
 	}
 	
-	public boolean markUploaded(UserAccess userAccess) {
+	boolean markUploaded(UserAccess userAccess) {
 		if (state == FileState.UPLOADED && getUserId().equals(userAccess.getUserId())) {
 			return true;
 		} else if (state != FileState.DELETED) {

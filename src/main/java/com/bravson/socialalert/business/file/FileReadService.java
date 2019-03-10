@@ -7,6 +7,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bravson.socialalert.business.file.entity.FileEntity;
+import com.bravson.socialalert.business.file.entity.FileRepository;
 import com.bravson.socialalert.business.file.store.FileStore;
 import com.bravson.socialalert.domain.media.MediaSizeVariant;
 import com.bravson.socialalert.domain.media.format.MediaFileFormat;

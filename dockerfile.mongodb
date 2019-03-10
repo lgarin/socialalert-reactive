@@ -2,4 +2,3 @@ FROM mongo:4.0.6-xenial
 COPY mongodb-keyfile /etc/mongodb-keyfile
 RUN chmod 600 /etc/mongodb-keyfile && chown mongodb:mongodb /etc/mongodb-keyfile
 ENTRYPOINT ["docker-entrypoint.sh", "--keyFile", "/etc/mongodb-keyfile"]
-CMD ["mongod"]

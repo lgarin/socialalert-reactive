@@ -1,4 +1,4 @@
-package com.bravson.socialalert.business.file;
+package com.bravson.socialalert.business.file.entity;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
@@ -12,6 +12,8 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bravson.socialalert.business.file.FileMetadata;
+import com.bravson.socialalert.business.file.event.NewFileEvent;
 import com.bravson.socialalert.business.file.media.MediaMetadata;
 import com.bravson.socialalert.business.user.UserAccess;
 
@@ -29,11 +31,33 @@ public class FileRepository {
 	@NonNull
     ApplicationEventPublisher eventPublisher;
 
-	public FileEntity storeMedia(@NonNull FileMetadata fileMetadata, @NonNull MediaMetadata mediaMetadata, @NonNull UserAccess userAccess) {
-		FileEntity entity = new FileEntity(fileMetadata, mediaMetadata, userAccess);
+	public FileEntity storeMedia(@NonNull String fileUri, @NonNull MediaMetadata mediaMetadata, List<FileMetadata> fileList, @NonNull UserAccess userAccess) {
+		FileEntity entity = new FileEntity(fileUri, mediaMetadata, userAccess);
+		fileList.forEach(entity::addVariant);
 		operations.insert(entity);
 		eventPublisher.publishEvent(NewFileEvent.of(entity));
 		return entity;
+	}
+	
+	public FileEntity addVariant(@NonNull FileEntity entity, @NonNull FileMetadata metadata) {
+		entity.addVariant(metadata);
+		return operations.save(entity);
+	}
+	
+	public boolean markUploaded(@NonNull FileEntity entity, UserAccess userAccess) {
+		if (entity.markUploaded(userAccess)) {
+			operations.save(entity);
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean markDeleted(@NonNull FileEntity entity, UserAccess userAccess) {
+		if (entity.markDeleted(userAccess)) {
+			operations.save(entity);
+			return true;
+		}
+		return false;
 	}
 	
 	public Optional<FileEntity> findFile(@NonNull String fileUri) {

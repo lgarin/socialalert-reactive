@@ -9,9 +9,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.bravson.socialalert.business.file.FileEntity;
 import com.bravson.socialalert.business.file.FileMetadata;
-import com.bravson.socialalert.business.file.FileRepository;
+import com.bravson.socialalert.business.file.entity.FileEntity;
+import com.bravson.socialalert.business.file.entity.FileRepository;
+import com.bravson.socialalert.business.file.event.AsyncVideoPreviewEvent;
 import com.bravson.socialalert.business.file.store.FileStore;
 import com.bravson.socialalert.domain.media.format.MediaFileFormat;
 
@@ -45,7 +46,7 @@ public class AsyncVideoPreviewProcessor {
 		File inputFile = fileStore.getExistingFile(fileMetadata.getMd5(), fileMetadata.getTimestamp(), fileMetadata.getFileFormat());
 		File previewFile = fileStore.createEmptyFile(fileMetadata.getMd5(), fileMetadata.getTimestamp(), videoFileProcessor.getPreviewFormat());
 		videoFileProcessor.createPreview(inputFile, previewFile);
-		fileEntity.addVariant(buildFileMetadata(previewFile, videoFileProcessor.getPreviewFormat(), fileMetadata));
+		fileRepository.addVariant(fileEntity, buildFileMetadata(previewFile, videoFileProcessor.getPreviewFormat(), fileMetadata));
 	}
 	
 	private FileMetadata buildFileMetadata(File file, MediaFileFormat fileFormat, FileMetadata inputFileMetadata) throws IOException {

@@ -3,6 +3,7 @@ package com.bravson.socialalert.business.file;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bravson.socialalert.business.file.entity.FileRepository;
 import com.bravson.socialalert.business.file.store.FileStore;
 import com.bravson.socialalert.business.user.UserAccess;
 
@@ -21,7 +22,7 @@ public class FileDeleteService {
 	FileStore fileStore;
 	
 	public boolean deleteFile(String fileUri, UserAccess userAccess) {
-		return fileRepository.findFile(fileUri).map(f -> f.markDelete(userAccess)).orElse(false);
+		return fileRepository.findFile(fileUri).map(f -> fileRepository.markDeleted(f, userAccess)).orElse(false);
 	}
 
 	//@Schedule(minute="*/5", hour="*")

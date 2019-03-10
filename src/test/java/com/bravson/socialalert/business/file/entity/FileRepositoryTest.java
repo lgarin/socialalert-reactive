@@ -1,4 +1,4 @@
-package com.bravson.socialalert.business.file;
+package com.bravson.socialalert.business.file.entity;
 
 import java.time.Instant;
 import java.util.List;
@@ -10,12 +10,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bravson.socialalert.DatabaseConfiguration;
+import com.bravson.socialalert.business.file.FileMetadata;
 import com.bravson.socialalert.business.file.media.MediaMetadata;
 import com.bravson.socialalert.business.user.UserAccess;
 import com.bravson.socialalert.domain.media.format.MediaFileFormat;
@@ -30,9 +30,6 @@ public class FileRepositoryTest extends Assertions {
 	@Autowired
     FileRepository repository;
 	
-	@Autowired
-	MongoOperations operations;
-	
     @Test
     public void findNonExistingFile() {
     	Optional<FileEntity> result = repository.findFile("xyz");
@@ -44,7 +41,7 @@ public class FileRepositoryTest extends Assertions {
     	FileMetadata fileMetadata = FileMetadata.builder().md5("xyz").timestamp(Instant.EPOCH).contentSize(0L).fileFormat(MediaFileFormat.MEDIA_JPG).build();
     	MediaMetadata mediaMetadata = MediaMetadata.builder().width(1200).height(1600).build();
     	UserAccess userAccess = UserAccess.of("test", "1.1.1.1");
-    	FileEntity result = repository.storeMedia(fileMetadata, mediaMetadata, userAccess);
+    	FileEntity result = repository.storeMedia(fileMetadata.buildFileUri(), mediaMetadata, List.of(fileMetadata), userAccess);
     	assertThat(result.getId()).isEqualTo("19700101/xyz");
     }
     
@@ -53,7 +50,7 @@ public class FileRepositoryTest extends Assertions {
     	FileMetadata fileMetadata = FileMetadata.builder().md5("xyz").timestamp(Instant.EPOCH).contentSize(0L).fileFormat(MediaFileFormat.MEDIA_JPG).build();
     	MediaMetadata mediaMetadata = MediaMetadata.builder().width(1200).height(1600).build();
     	UserAccess userAccess = UserAccess.of("test", "1.1.1.1");
-    	repository.storeMedia(fileMetadata, mediaMetadata, userAccess);
+    	repository.storeMedia(fileMetadata.buildFileUri(), mediaMetadata, List.of(fileMetadata), userAccess);
     	Optional<FileEntity> result = repository.findFile("19700101/xyz");
     	assertThat(result).isNotEmpty();
     }
@@ -69,8 +66,7 @@ public class FileRepositoryTest extends Assertions {
     	FileMetadata fileMetadata = FileMetadata.builder().md5("xyz").timestamp(Instant.EPOCH).contentSize(0L).fileFormat(MediaFileFormat.MEDIA_JPG).build();
     	MediaMetadata mediaMetadata = MediaMetadata.builder().width(1200).height(1600).build();
     	UserAccess userAccess = UserAccess.of("test", "1.1.1.1");
-    	FileEntity entity = new FileEntity(fileMetadata, mediaMetadata, userAccess);
-    	operations.insert(entity);
+    	FileEntity entity = repository.storeMedia(fileMetadata.buildFileUri(), mediaMetadata, List.of(fileMetadata), userAccess);
     	
     	List<FileEntity> result = repository.findByIpAddressPattern("1.1.");
     	assertThat(result).containsOnly(entity);
@@ -81,8 +77,7 @@ public class FileRepositoryTest extends Assertions {
     	FileMetadata fileMetadata = FileMetadata.builder().md5("xyz").timestamp(Instant.EPOCH).contentSize(0L).fileFormat(MediaFileFormat.MEDIA_JPG).build();
     	MediaMetadata mediaMetadata = MediaMetadata.builder().width(1200).height(1600).build();
     	UserAccess userAccess = UserAccess.of("test", "1.1.1.1");
-    	FileEntity entity = new FileEntity(fileMetadata, mediaMetadata, userAccess);
-    	operations.insert(entity);
+    	FileEntity entity = repository.storeMedia(fileMetadata.buildFileUri(), mediaMetadata, List.of(fileMetadata), userAccess);
     	
     	List<FileEntity> result = repository.findByUserIdAndState("test", FileState.UPLOADED);
     	assertThat(result).containsOnly(entity);

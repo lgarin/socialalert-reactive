@@ -2,6 +2,7 @@ package com.bravson.socialalert.business.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -10,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bravson.socialalert.business.file.entity.FileEntity;
+import com.bravson.socialalert.business.file.entity.FileRepository;
+import com.bravson.socialalert.business.file.event.AsyncVideoPreviewEvent;
 import com.bravson.socialalert.business.file.media.MediaMetadata;
-import com.bravson.socialalert.business.file.video.AsyncVideoPreviewEvent;
 import com.bravson.socialalert.business.user.UserAccess;
 import com.bravson.socialalert.business.user.UserInfoService;
 import com.bravson.socialalert.domain.file.FileInfo;
@@ -42,8 +45,8 @@ public class FileUploadService {
 	
 	Logger logger = LoggerFactory.getLogger(getClass());
 
-	private static FileInfo handleExistingFile(FileEntity file, UserAccess userAccess) {
-		if (!file.markUploaded(userAccess)) {
+	private FileInfo handleExistingFile(FileEntity file, UserAccess userAccess) {
+		if (!mediaRepository.markUploaded(file, userAccess)) {
 			throw new FileConflictException();
 		}
 		return file.toFileInfo();
@@ -65,14 +68,11 @@ public class FileUploadService {
 	}
 
 	private FileEntity storeNewFile(File inputFile, FileMetadata fileMetadata, MediaMetadata mediaMetadata, UserAccess userAccess) throws IOException {
-		mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.MEDIA);
-		FileEntity fileEntity = mediaRepository.storeMedia(fileMetadata, mediaMetadata, userAccess);
-		
-		FileMetadata thumbnailMetadata = mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.THUMBNAIL);
-		fileEntity.addVariant(thumbnailMetadata);
-		
-		FileMetadata previewMetadata = mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.PREVIEW);
-		fileEntity.addVariant(previewMetadata);
+		List<FileMetadata> fileList = List.of(
+				mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.MEDIA),
+				mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.THUMBNAIL),
+				mediaFileStore.storeVariant(inputFile, fileMetadata, MediaSizeVariant.PREVIEW));
+		FileEntity fileEntity = mediaRepository.storeMedia(fileMetadata.buildFileUri(), mediaMetadata, fileList, userAccess);
 		
 		if (fileMetadata.isVideo()) {
 			messagingBridge.sendMessage(AsyncVideoPreviewEvent.of(fileEntity.getId()));

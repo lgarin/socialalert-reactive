@@ -1,8 +1,8 @@
 package com.bravson.socialalert.domain.user.activity;
 
 public enum ActivityType {
-	NEW_PICTURE,
-	REPOST_PICTURE,
+	NEW_MEDIA,
+	REPOST_MEDIA,
 	NEW_COMMENT,
 	REPOST_COMMENT,
 	LIKE_MEDIA,

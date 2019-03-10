@@ -6,7 +6,6 @@ services:
     build:
       context: .
       dockerfile: dockerfile.mongodb
-    restart: always
     command: --setParameter maxSessions=100 --smallfiles --replSet rs1 --port 27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
@@ -22,7 +21,6 @@ services:
     build:
       context: .
       dockerfile: dockerfile.mongodb
-    restart: always
     command: --setParameter maxSessions=100 --smallfiles --replSet rs1 --port 27018
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin

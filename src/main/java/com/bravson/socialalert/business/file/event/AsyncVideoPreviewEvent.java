@@ -1,4 +1,4 @@
-package com.bravson.socialalert.business.file.video;
+package com.bravson.socialalert.business.file.event;
 
 import org.springframework.context.ApplicationEvent;
 
