@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bravson.socialalert.business.file.FileMetadata;
+import com.bravson.socialalert.business.file.event.DeletedFileEvent;
 import com.bravson.socialalert.business.file.event.NewFileEvent;
 import com.bravson.socialalert.business.file.media.MediaMetadata;
 import com.bravson.socialalert.business.user.UserAccess;
@@ -55,6 +56,7 @@ public class FileRepository {
 	public boolean markDeleted(@NonNull FileEntity entity, UserAccess userAccess) {
 		if (entity.markDeleted(userAccess)) {
 			operations.save(entity);
+			eventPublisher.publishEvent(DeletedFileEvent.of(entity));
 			return true;
 		}
 		return false;

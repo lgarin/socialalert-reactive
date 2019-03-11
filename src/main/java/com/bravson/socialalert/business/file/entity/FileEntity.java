@@ -18,9 +18,11 @@ import com.bravson.socialalert.infrastructure.entity.VersionInfo;
 import com.bravson.socialalert.infrastructure.entity.VersionedEntity;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Singular;
 
 @Document(collection="File")
 @NoArgsConstructor(access=AccessLevel.PROTECTED)
@@ -44,8 +46,16 @@ public class FileEntity extends VersionedEntity {
 		this.state = FileState.UPLOADED;
 	}
 	
-	public FileEntity(@NonNull String id) {
-		this.id = id;
+	@Builder
+	protected FileEntity(@NonNull FileMetadata fileMetadata, @NonNull MediaMetadata mediaMetadata, @NonNull UserAccess userAccess, FileState state, @Singular List<FileMetadata> fileVariants) {
+		this.versionInfo = VersionInfo.of(userAccess.getUserId(), userAccess.getIpAddress());
+		this.id = fileMetadata.buildFileUri();
+		this.mediaMetadata = mediaMetadata;
+		this.state = state != null ? state : FileState.UPLOADED;
+		addVariant(fileMetadata);
+		if (fileVariants != null) {
+			fileVariants.forEach(this::addVariant);
+		}
 	}
 	
 	private Optional<FileMetadata> findFileMetadata(MediaSizeVariant sizeVariant) {
