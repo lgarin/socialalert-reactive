@@ -3,18 +3,14 @@ package com.bravson.socialalert.rest;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.WebRequest;
 
 import com.bravson.socialalert.business.user.UserAccess;
 
-@Component
-@Scope(scopeName = WebApplicationContext.SCOPE_REQUEST)
-public class UserAccessFactory {
-
+public abstract class BaseFacade {
+	
+	@Autowired
+	HttpServletRequest servletRequest;
+	
 	private static final String[] IP_HEADER_CANDIDATES = { 
 			"X-Forwarded-For",
 			"Proxy-Client-IP",
@@ -28,15 +24,9 @@ public class UserAccessFactory {
 			"HTTP_VIA",
 			"REMOTE_ADDR" };
 
-	@Autowired
-	WebRequest webRequest;
-
-	@Autowired
-	HttpServletRequest servletRequest;
-
-	public String getClientIpAddress() {
+	private String getClientIpAddress() {
 		for (String header : IP_HEADER_CANDIDATES) {
-			String ip = webRequest.getHeader(header);
+			String ip = servletRequest.getHeader(header);
 			if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
 				return ip;
 			}
@@ -44,9 +34,8 @@ public class UserAccessFactory {
 		return servletRequest.getRemoteAddr();
 	}
 
-	@Bean
-	public UserAccess buildUserAccess() {
+	protected final UserAccess getUserAccess() {
+		//return UserAccess.of(servletRequest.getRemoteUser(), getClientIpAddress());
 		return UserAccess.of("test", getClientIpAddress());
 	}
-
 }

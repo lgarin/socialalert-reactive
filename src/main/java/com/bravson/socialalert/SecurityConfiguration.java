@@ -1,28 +1,27 @@
 package com.bravson.socialalert;
 
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
-@EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
-public class SecurityConfiguration {
+@Configuration
+@EnableWebSecurity
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests().antMatchers("/**").permitAll().anyRequest().authenticated().and().csrf().disable();
+	}
+
 	/*
-	@Bean
-	@Profile("dev")
-	public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
-	    return http.csrf().disable().authorizeExchange()
-	      .anyExchange().permitAll().and().build();
-	}
-	*/
-	/*
-	@Bean
-	public ReactiveUserDetailsService userDetailService(UserCredentialRepository repo) {
-		return (username) -> repo.findByUsername(Mono.just(username)).map(c -> User.withUsername(c.username).password(c.password).build());
-	}
-	
-	@Bean
-	public ReactiveAuthenticationManager authenticationManager(ReactiveUserDetailsService userRepository) {
-	    return new UserDetailsRepositoryReactiveAuthenticationManager(userRepository);
-	}
-	*/
+	 * @Bean public ReactiveUserDetailsService
+	 * userDetailService(UserCredentialRepository repo) { return (username) ->
+	 * repo.findByUsername(Mono.just(username)).map(c ->
+	 * User.withUsername(c.username).password(c.password).build()); }
+	 * 
+	 * @Bean public ReactiveAuthenticationManager
+	 * authenticationManager(ReactiveUserDetailsService userRepository) { return new
+	 * UserDetailsRepositoryReactiveAuthenticationManager(userRepository); }
+	 */
 }
